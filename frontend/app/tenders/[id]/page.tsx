@@ -25,7 +25,7 @@ import {
   Clock,
   ExternalLink,
 } from "lucide-react";
-import { api } from "../../../services/api";
+import { api, fetchApi } from "../../../services/api";
 
 export default function TenderDetailPage() {
   const params = useParams();
@@ -38,11 +38,13 @@ export default function TenderDetailPage() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   // Application Draft State
+  const [appId, setAppId] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [declaration, setDeclaration] = useState("");
   const [technicalResponse, setTechnicalResponse] = useState("");
   const [isGeneratingApp, setIsGeneratingApp] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [saveDraftMessage, setSaveDraftMessage] = useState("");
 
   useEffect(() => {
     if (tenderId) {
@@ -79,6 +81,7 @@ export default function TenderDetailPage() {
       }).catch(() => null);
 
       if (appPackage) {
+        setAppId(appPackage.id || "");
         setCoverLetter(appPackage.cover_letter_content || "");
         setDeclaration(appPackage.declaration_content || "");
         setTechnicalResponse(appPackage.technical_response_content || "");
@@ -100,13 +103,37 @@ export default function TenderDetailPage() {
     }
   };
 
-  const handleDownloadPackage = () => {
-    const fullText = `=== AI TENDER APPLICATION PACKAGE ===\nTender: ${tender?.title}\nRef: ${tender?.tender_id_code}\n\n--- COVER LETTER ---\n${coverLetter}\n\n--- DECLARATION ---\n${declaration}\n\n--- TECHNICAL RESPONSE ---\n${technicalResponse}`;
-    const blob = new Blob([fullText], { type: "text/plain" });
+  const handleSaveDrafts = async () => {
+    try {
+      setIsSavingDraft(true);
+      await api.updateApplication(appId || tenderId, {
+        cover_letter_content: coverLetter,
+        declaration_content: declaration,
+        technical_response_content: technicalResponse,
+      });
+      setSaveDraftMessage("Application package drafts saved successfully to server!");
+      setTimeout(() => setSaveDraftMessage(""), 3500);
+    } catch (e) {
+      console.error("Failed to save drafts:", e);
+      setSaveDraftMessage("Failed to save drafts.");
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleDownloadPackage = (format: "txt" | "md" = "txt") => {
+    const isMd = format === "md";
+    const fullText = isMd
+      ? `# AI Tender Application Package\n**Tender:** ${tender?.title}\n**Ref:** ${tender?.tender_id_code}\n\n## 1. Formal Cover Letter\n${coverLetter}\n\n## 2. Tender Declaration\n${declaration}\n\n## 3. Technical Compliance Statement\n${technicalResponse}\n`
+      : `=== AI TENDER APPLICATION PACKAGE ===\nTender: ${tender?.title}\nRef: ${tender?.tender_id_code}\n\n--- COVER LETTER ---\n${coverLetter}\n\n--- DECLARATION ---\n${declaration}\n\n--- TECHNICAL RESPONSE ---\n${technicalResponse}`;
+
+    const mime = isMd ? "text/markdown" : "text/plain";
+    const ext = isMd ? "md" : "txt";
+    const blob = new Blob([fullText], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Tender_Application_${tender?.tender_id_code || "MH-2026"}.txt`;
+    a.download = `Tender_Application_${tender?.tender_id_code || "MH-2026"}.${ext}`;
     a.click();
   };
 
@@ -344,19 +371,49 @@ export default function TenderDetailPage() {
         {/* Tab 2: Application Assistant Generator */}
         {activeTab === "APPLICATION" && (
           <div className="space-y-8">
-            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-center justify-between">
+            {saveDraftMessage && (
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                <span>{saveDraftMessage}</span>
+              </div>
+            )}
+
+            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-blue-400 shrink-0" />
                 <span>Zero Hallucination Guaranteed: All generated content is created strictly from verified profile facts.</span>
               </div>
 
-              <button
-                onClick={handleDownloadPackage}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download Package</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={handleSaveDrafts}
+                  disabled={isSavingDraft || !coverLetter}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingDraft ? "Saving..." : "Save Draft Changes"}</span>
+                </button>
+
+                <button
+                  onClick={() => handleDownloadPackage("txt")}
+                  disabled={!coverLetter}
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 transition-all"
+                  title="Download as TXT"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download .TXT</span>
+                </button>
+
+                <button
+                  onClick={() => handleDownloadPackage("md")}
+                  disabled={!coverLetter}
+                  className="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all"
+                  title="Download as Markdown"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>.MD</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

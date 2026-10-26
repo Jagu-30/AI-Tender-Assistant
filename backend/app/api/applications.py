@@ -4,7 +4,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.models.models import BusinessProfile, Match, Tender, GeneratedApplication
-from app.schemas.schemas import ApplicationGenerateRequest, GeneratedApplicationResponse
+from app.schemas.schemas import ApplicationGenerateRequest, GeneratedApplicationResponse, ApplicationUpdateRequest
 from app.services.application_service import ApplicationAssistantService
 
 router = APIRouter(prefix="/applications", tags=["Application Assistant"])
@@ -99,5 +99,51 @@ async def get_application(app_id: str, db: AsyncSession = Depends(get_db)):
     res = await db.execute(select(GeneratedApplication).where(GeneratedApplication.id == app_id))
     app_rec = res.scalars().first()
     if not app_rec:
+        # Fallback check by match_id
+        res_m = await db.execute(select(GeneratedApplication).where(GeneratedApplication.match_id == app_id))
+        app_rec = res_m.scalars().first()
+    if not app_rec:
         raise HTTPException(status_code=404, detail="Application not found")
-    return GeneratedApplicationResponse.model_validate(app_rec)
+    return GeneratedApplicationResponse(
+        id=app_rec.id,
+        match_id=app_rec.match_id,
+        cover_letter_content=app_rec.cover_letter_content or "",
+        declaration_content=app_rec.declaration_content or "",
+        technical_response_content=app_rec.technical_response_content or "",
+        document_checklist=app_rec.document_checklist or [],
+        is_edited=app_rec.is_edited
+    )
+
+@router.put("/{app_id}", response_model=GeneratedApplicationResponse)
+async def update_application(app_id: str, app_update: ApplicationUpdateRequest, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(GeneratedApplication).where(GeneratedApplication.id == app_id))
+    app_rec = res.scalars().first()
+    if not app_rec:
+        # Fallback check by match_id
+        res_m = await db.execute(select(GeneratedApplication).where(GeneratedApplication.match_id == app_id))
+        app_rec = res_m.scalars().first()
+    if not app_rec:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    if app_update.cover_letter_content is not None:
+        app_rec.cover_letter_content = app_update.cover_letter_content
+    if app_update.declaration_content is not None:
+        app_rec.declaration_content = app_update.declaration_content
+    if app_update.technical_response_content is not None:
+        app_rec.technical_response_content = app_update.technical_response_content
+    if app_update.document_checklist is not None:
+        app_rec.document_checklist = app_update.document_checklist
+
+    app_rec.is_edited = True
+    await db.commit()
+    await db.refresh(app_rec)
+    return GeneratedApplicationResponse(
+        id=app_rec.id,
+        match_id=app_rec.match_id,
+        cover_letter_content=app_rec.cover_letter_content or "",
+        declaration_content=app_rec.declaration_content or "",
+        technical_response_content=app_rec.technical_response_content or "",
+        document_checklist=app_rec.document_checklist or [],
+        is_edited=app_rec.is_edited
+    )
+

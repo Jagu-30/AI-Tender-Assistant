@@ -1,6 +1,6 @@
 from datetime import datetime
 import pytz
-from typing import Dict, Any
+from typing import Dict, Any, List
 from app.models.models import BusinessProfile
 
 class RequirementGapEngine:
@@ -17,9 +17,25 @@ class RequirementGapEngine:
         doc_type_keywords = {
             "gst": "GST_CERTIFICATE",
             "msme": "MSME_CERTIFICATE",
-            "turnover": "FINANCIAL_STATEMENT",
+            "udyam": "MSME_CERTIFICATE",
             "financial": "FINANCIAL_STATEMENT",
-            "experience": "EXPERIENCE_CERTIFICATE"
+            "audited": "FINANCIAL_STATEMENT",
+            "turnover": "FINANCIAL_STATEMENT",
+            "balance sheet": "FINANCIAL_STATEMENT",
+            "experience": "EXPERIENCE_CERTIFICATE",
+            "work order": "EXPERIENCE_CERTIFICATE",
+            "pan": "PAN_CARD",
+            "local content": "DECLARATION",
+            "make in india": "DECLARATION",
+            "iso": "CERTIFICATE",
+            "quality": "CERTIFICATE",
+            "oem": "AUTHORIZATION",
+            "maf": "AUTHORIZATION",
+            "authorization": "AUTHORIZATION",
+            "labour": "LABOUR_COMPLIANCE",
+            "epf": "LABOUR_COMPLIANCE",
+            "contractor license": "ELECTRICAL_LICENSE",
+            "electrical": "ELECTRICAL_LICENSE",
         }
 
         for req in required_docs:
@@ -40,6 +56,14 @@ class RequirementGapEngine:
 
         total_req_count = len(required_docs) if required_docs else 1
         readiness_pct = round((len(available_docs) / total_req_count) * 100.0, 1)
+
+        gap_matrix = []
+        for req in required_docs:
+            status = "SATISFIED" if req in available_docs else "MISSING"
+            gap_matrix.append({
+                "document_name": req,
+                "status": status
+            })
 
         risk_level = "LOW"
         risk_reasons = []
@@ -83,6 +107,7 @@ class RequirementGapEngine:
             "readiness_percentage": readiness_pct,
             "available_documents": available_docs,
             "missing_documents": missing_docs,
+            "gap_matrix": gap_matrix,
             "risk_level": risk_level,
             "risk_reasons": risk_reasons,
             "days_remaining": days_remaining,

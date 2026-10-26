@@ -12,6 +12,7 @@ router = APIRouter(prefix="/business", tags=["Business Profile"])
 async def get_profile(db: AsyncSession = Depends(get_db)):
     res = await db.execute(
         select(BusinessProfile)
+        .order_by(BusinessProfile.created_at.desc())
         .options(selectinload(BusinessProfile.products), selectinload(BusinessProfile.documents))
     )
     profile = res.scalars().first()
@@ -23,18 +24,18 @@ async def get_profile(db: AsyncSession = Depends(get_db)):
         
         profile = BusinessProfile(
             user_id=uid,
-            company_name="ABC Furniture Pvt. Ltd.",
-            business_category="Furniture Manufacturer",
-            description="Manufacturer of high quality institutional furniture",
-            annual_turnover=5000000.0,
+            company_name="Apex Modular Infrastructure Pvt. Ltd.",
+            business_category="Institutional Furniture, Modular Workstations & Educational Infrastructure",
+            description="Empanelled MSME manufacturer registered under Udyam and Make in India initiative, specializing in high-durability school dual desks, modular IT workstations, anti-microbial healthcare couches, and precision steel storage solutions.",
+            annual_turnover=6500000.0,
             is_msme_registered=True,
-            msme_registration_number="UDYAM-MH-12-0098765",
+            msme_registration_number="UDYAM-MH-12-0048291",
             has_gst_registration=True,
-            gstin="27AABCA1234F1Z5",
+            gstin="27AABCA4892F1Z4",
             state_location="Maharashtra",
-            operating_regions=["Maharashtra", "Goa"],
-            years_in_business=5,
-            govt_experience_years=3
+            operating_regions=["Maharashtra", "Gujarat", "Goa", "Karnataka", "All India"],
+            years_in_business=6,
+            govt_experience_years=4
         )
         db.add(profile)
         await db.commit()

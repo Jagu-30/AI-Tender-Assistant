@@ -35,11 +35,11 @@ async def analyze_and_match(tender_id: str, db: AsyncSession = Depends(get_db)):
         "tender_id": tender.tender_id_code,
         "organization": tender.organization,
         "budget": float(tender.estimated_value or 1000000.0),
-        "deadline": "2026-09-30T17:00:00+05:30",
-        "location": tender.location or "All India",
+        "deadline": (tender.closing_date.isoformat() if tender.closing_date else "2026-11-20T17:00:00+05:30"),
+        "location": tender.location or "Maharashtra",
         "products": [tender.title],
         "eligibility": {"minimum_turnover": float(tender.estimated_value or 1000000.0) * 0.4, "msme_required": True, "gst_required": True},
-        "required_documents": ["GST Registration Certificate", "MSME Udyam Certificate", "Audited Financial Statements", "Prior Experience Proof"]
+        "required_documents": ["GST Registration Certificate", "MSME Udyam Registration Certificate", "Audited Financial Statements (Last 2 Years)", "Prior Experience / Work Order Execution Proof"]
     }
 
     # Execute Scoring & Gap Engine
@@ -78,7 +78,7 @@ async def analyze_and_match(tender_id: str, db: AsyncSession = Depends(get_db)):
         tender_title=tender.title,
         organization=tender.organization,
         budget=float(tender.estimated_value or 0),
-        deadline=tender_data.get("deadline", "2026-09-20T17:00:00+05:30"),
+        deadline=tender_data.get("deadline") or (tender.closing_date.isoformat() if tender.closing_date else "2026-11-20T17:00:00+05:30"),
         location=tender.location or "Maharashtra",
         overall_score=float(match_rec.overall_score),
         product_score=float(match_rec.product_score),
@@ -93,6 +93,7 @@ async def analyze_and_match(tender_id: str, db: AsyncSession = Depends(get_db)):
         reasons=reasons_list,
         missing_documents=gap_result["missing_documents"],
         available_documents=gap_result["available_documents"],
+        gap_matrix=gap_result.get("gap_matrix", []),
         days_remaining=gap_result["days_remaining"],
         urgency_status=gap_result["urgency_status"]
     )

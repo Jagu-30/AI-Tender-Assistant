@@ -63,7 +63,7 @@ export default function LandingPage() {
               className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-base bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-2"
             >
               <Building2 className="h-5 w-5 text-emerald-400" />
-              <span>{isSeeding ? "Loading ABC Furniture Demo..." : "Explore ABC Furniture Demo"}</span>
+              <span>{isSeeding ? "Loading Apex Modular MSME Demo..." : "Explore Verified MSME Demo"}</span>
             </button>
           </div>
 

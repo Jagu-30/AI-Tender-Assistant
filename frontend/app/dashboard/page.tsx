@@ -131,40 +131,44 @@ export default function DashboardPage() {
 
           <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase">Missing Documents</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">Document Locker</span>
               <div className="p-2 rounded-lg bg-rose-500/10 text-rose-400">
                 <AlertTriangle className="h-4 w-4" />
               </div>
             </div>
-            <span className="text-3xl font-black text-rose-400 font-mono">1</span>
-            <span className="block text-[11px] text-rose-400/80 mt-1">Experience Proof Required</span>
+            <span className="text-3xl font-black text-rose-400 font-mono">
+              {profile?.documents ? profile.documents.filter((d: any) => d.verification_status !== "AVAILABLE").length : 2}
+            </span>
+            <span className="block text-[11px] text-rose-400/80 mt-1">Pending / Missing Proofs</span>
           </div>
         </div>
 
         {/* Missing Document Action Alert */}
-        <div className="mb-8 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-bold text-amber-200">Missing Qualification Document Alert</h4>
-              <p className="text-xs text-amber-300/80 mt-0.5">
-                School Furniture Supply tender requires <strong className="font-semibold text-white">Previous Supply Experience Proof Certificate</strong>. Upload proof in MSME Locker to boost match readiness to 100%.
-              </p>
+        {(profile?.documents?.some((d: any) => d.verification_status !== "AVAILABLE") ?? true) && (
+          <div className="mb-8 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-200">Document Locker Notice</h4>
+                <p className="text-xs text-amber-300/80 mt-0.5">
+                  Some qualification proofs (such as Labour Compliance or Contractor License) are pending in your Document Locker. Upload or update proofs to maximize match readiness.
+                </p>
+              </div>
             </div>
+            <Link
+              href="/profile"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors shrink-0"
+            >
+              Manage Document Locker
+            </Link>
           </div>
-          <Link
-            href="/profile"
-            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors shrink-0"
-          >
-            Upload to Locker
-          </Link>
-        </div>
+        )}
 
         {/* Recommended Tenders Section */}
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-extrabold text-white flex items-center gap-2">
-              <span>Recommended Tenders for ABC Furniture</span>
+              <span>Recommended Tenders for {profile?.company_name || "Apex Modular Infrastructure"}</span>
               <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
                 Vector Matched
               </span>

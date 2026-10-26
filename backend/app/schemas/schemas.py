@@ -59,6 +59,12 @@ class BusinessDocumentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class BusinessDocumentUpdate(BaseModel):
+    document_name: Optional[str] = None
+    document_type: Optional[str] = None
+    verification_status: Optional[str] = None
+    issue_date: Optional[str] = None
+
 # --- Business Profile Schemas ---
 class BusinessProfileCreate(BaseModel):
     company_name: str
@@ -141,6 +147,7 @@ class MatchResponse(BaseModel):
     reasons: List[ReasonItem] = []
     missing_documents: List[str] = []
     available_documents: List[str] = []
+    gap_matrix: List[Dict[str, Any]] = []
     days_remaining: int = 0
     urgency_status: str = "SAFE"
 
@@ -158,3 +165,13 @@ class GeneratedApplicationResponse(BaseModel):
     technical_response_content: str
     document_checklist: List[Dict[str, Any]]
     is_edited: bool = False
+
+    class Config:
+        from_attributes = True
+
+class ApplicationUpdateRequest(BaseModel):
+    cover_letter_content: Optional[str] = None
+    declaration_content: Optional[str] = None
+    technical_response_content: Optional[str] = None
+    document_checklist: Optional[List[Dict[str, Any]]] = None
+    is_edited: Optional[bool] = True

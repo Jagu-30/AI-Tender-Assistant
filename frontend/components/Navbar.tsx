@@ -79,7 +79,7 @@ export default function Navbar({ onUploadClick }: { onUploadClick?: () => void }
             onClick={handleSeed}
             disabled={isSeeding}
             className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors disabled:opacity-50"
-            title="Load ABC Furniture Pvt. Ltd. sample business & tender"
+            title="Load Apex Modular Infrastructure sample MSME business & authentic tenders"
           >
             {seedSuccess ? (
               <>

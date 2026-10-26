@@ -41,7 +41,11 @@ export const api = {
   
   // Documents
   getDocuments: () => fetchApi<any[]>("/documents"),
+  createDocument: (data: { document_name: string; document_type: string; verification_status?: string; issue_date?: string }) =>
+    fetchApi<any>("/documents", { method: "POST", body: JSON.stringify(data) }),
   uploadDocument: (formData: FormData) => fetchApi<any>("/documents/upload", { method: "POST", body: formData }),
+  updateDocument: (id: string, data: any) => fetchApi<any>(`/documents/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteDocument: (id: string) => fetchApi<any>(`/documents/${id}`, { method: "DELETE" }),
 
   // Tenders
   getTenders: () => fetchApi<any[]>("/tenders"),
